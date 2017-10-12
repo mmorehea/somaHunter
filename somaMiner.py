@@ -7,15 +7,28 @@ from PIL import Image
 import numpy as np
 import sys
 from matplotlib import pyplot as plt
+import pickle
+import os
 
+def save_obj(obj, name ):
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(name ):
+    with open(name + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 # TOP LEFT
 def getXZCoordinates(img):
 	subimg = img[100:800, 94:869, :]
 	xx,yy,zz = subimg.shape
-	subimg[90, :, :] = [255,0,0] # upper left corner
-	subimg[xx-50, :, :] = [0,255,0] # lower right corner
-
+	subimg[108, :, :] = [255,0,0] # upper left corner
+	subimg[xx-45, :, :] = [0,255,0] # lower right corner
+	subimg[:, 5, :] = [0,0,255] 
+	subimg[:, yy-15, :] = [100,0,0] 
+	
+	subimg = subimg[108:xx-45, 5:yy-15, :]
+	#print(subimg.shape)
 	#showimg = Image.fromarray(subimg, 'RGB')
 	#showimg.show()
 
@@ -49,12 +62,16 @@ def getYZCoordinates(img):
 	subimg = img[100:800, 1050:1700, :]
 	xx,yy,zz = subimg.shape
 	subimg[108, :, :] = [255,0,0] 
-	subimg[xx-45, :, :] = [255,0,0] 
-	subimg[:, 44, :] = [255,0,0] 
-	subimg[:, yy-37, :] = [255,0,0] 
-	showimg = Image.fromarray(subimg, 'RGB')
-	showimg.show()
+	subimg[xx-45, :, :] = [0,255,0] 
+	subimg[:, 44, :] = [0,0,255] 
+	subimg[:, yy-37, :] = [100,0,0] 
 
+	subimg = subimg[108:xx-45, 44:yy-37, :]
+	
+	#print(subimg.shape)
+	#showimg = Image.fromarray(subimg, 'RGB')
+	#showimg.show()
+	
 	white = np.where(subimg == [255, 255, 255])
 	black = np.where(subimg == [0, 0, 0])
 	blue = np.where(subimg == [0, 0, 255])
@@ -75,8 +92,8 @@ def getYZCoordinates(img):
 
 	#showimg = Image.fromarray(mask)
 	#showimg.show()
-	print(xx-45, 108)
-	code.interact(local=dict(globals(), **locals())) 
+
+	#code.interact(local=dict(globals(), **locals())) 
 	return int(YZlat), int(YZlong)
 
 
@@ -94,9 +111,9 @@ def getXYCoordinates(img):
 	xx,yy,zz = subimg.shape
 	subimg[3, 38, :] = [255,0,0]  #upper left corner
 	subimg[xx-3, yy-38, :] = [0,255,0] #lower right corner
-
-	showimg = Image.fromarray(subimg, 'RGB')
-	showimg.show()
+	#print(subimg.shape)
+	#showimg = Image.fromarray(subimg, 'RGB')
+	#showimg.show()
 
 	white = np.where(subimg == [255, 255, 255])
 	black = np.where(subimg == [0, 0, 0])
@@ -110,7 +127,8 @@ def getXYCoordinates(img):
 	mask = mask[:,:,0]
 	mask *= 255
 	dot = np.where(mask == 255)
-
+	if dot[0].size == 0:
+		return -1, -1
 	long = (np.max(dot[1]) + np.min(dot[1])) / 2
 	lat = (np.max(dot[0]) + np.min(dot[0])) / 2
 
@@ -118,7 +136,7 @@ def getXYCoordinates(img):
 
 	#showimg = Image.fromarray(mask)
 	#showimg.show()
-	code.interact(local=dict(globals(), **locals())) 
+	#code.interact(local=dict(globals(), **locals())) 
 	return int(lat), int(long)
 
 
@@ -128,19 +146,26 @@ def getXYCoordinates(img):
 def main():
 	folderDir = sys.argv[1]
 	pathList = glob.glob(folderDir + '*.png')
+
+	locationDict = {}
+	total = len(pathList)
 	
-	for each in pathList:
-		image_path = each
-		img = misc.imread(image_path)
-		print(each)
+	for ii,each in enumerate(pathList):
+		img = misc.imread(each)
+		print(each + " " + str(ii) + " / " + str(total))
 		zVal1, xVal1 = getXZCoordinates(img)
-		print("Z: " + str(zVal1) + " X:" + str(xVal1))
+		#print("Z: " + str(zVal1) + " X:" + str(xVal1))
 		
 		zVal2, yVal1 = getYZCoordinates(img)
-		print("Z: " + str(zVal2) + " Y:" + str(yVal1))
+		#print("Z: " + str(zVal2) + " Y:" + str(yVal1))
 		
 		yVal2, xVal2 = getXYCoordinates(img)
-		print ("Y: " + str(655 - yVal2) + " X:" + str(xVal2))
+		yVal2 = 528 - yVal2
+		#print ("Y: " + str(528 - yVal2) + " X:" + str(xVal2))
+		
+		locationDict[ii] = (os.path.basename(each), zVal1, xVal1, yVal1, zVal2, xVal2, yVal2)
+		
+	save_obj(locationDict, "locationDictionary")
 		
 	
 
