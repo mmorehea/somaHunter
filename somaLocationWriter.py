@@ -40,7 +40,7 @@ def main():
 		for ii,each in enumerate(list(locDict)):
 			#locationDict[ii] = (os.path.basename(each), zVal1, xVal1, yVal1, zVal2, xVal2, yVal2)
 			name, zVal1, xVal1, yVal1, zVal2, xVal2, yVal2 = locDict[each]
-			writeString = str(ii) + ", " + name + ", {:.2f}, {:.2f}, {:.2f} \n".format(zVal1/float(ztotal+1), xVal1/float(xtotal+1), yVal2/float(ytotal+1))
+			writeString = str(ii) + ", " + name + ", {:.4f}, {:.4f}, {:.4f} \n".format(zVal1/float(ztotal+1), xVal1/float(xtotal+1), yVal2/float(ytotal+1))
 			f.write(writeString)
 
 
